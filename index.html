@@ -132,8 +132,9 @@ function totalsCard(title, t) {
 function render(s) {
   const d = s.day;
   const housePct = d.genDay > 0 ? d.selfUsed / d.genDay : 0;
+  const upd = new Date(s.generated).toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
   document.getElementById('updated').textContent =
-    `Simon's solar station · latest day ${d.date} · updated ${s.generated.slice(0,10)}`;
+    `Simon's solar station · latest day ${d.date} · updated ${upd}`;
   document.getElementById('gauges').innerHTML =
     tile(sunGauge(d.gen, d.best), d.best > 0 ? Math.round(Math.min(d.gen/d.best,1)*100) : 0,
       [`Day total: <b>${d.gen.toFixed(1)} kWh</b>`, `of ${d.qName} best ${d.best.toFixed(1)} kWh`]) +
