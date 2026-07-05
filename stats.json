@@ -1,0 +1,43 @@
+{
+ "station": "MangoMadness",
+ "generated": "2026-07-05T06:06:58.931Z",
+ "batteryKwh": 13.5,
+ "day": {
+  "date": "2026-07-05",
+  "gen": 20.04,
+  "genDay": 20.65,
+  "best": 24.4,
+  "bestDate": "2026-07-04",
+  "qName": "Q3 2026",
+  "exp": 13.61,
+  "imp": 0.41,
+  "selfUsed": 7.04,
+  "consumption": 7.45,
+  "selfSuff": 0.94,
+  "coverage": 1
+ },
+ "month": {
+  "label": "July 2026",
+  "gen": 101.61,
+  "conMeas": 59.96,
+  "conEst": 59.96,
+  "exp": 51.98,
+  "imp": 9.54,
+  "selfSuff": 0.84,
+  "coverage": 1,
+  "genDays": 5,
+  "conDays": 5
+ },
+ "year": {
+  "label": "2026",
+  "gen": 4820.33,
+  "conMeas": 3583.59,
+  "conEst": 3736.55,
+  "exp": 1988.78,
+  "imp": 949.51,
+  "selfSuff": 0.74,
+  "coverage": 0.96,
+  "genDays": 179,
+  "conDays": 179
+ }
+}
