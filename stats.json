@@ -1,43 +1,43 @@
 {
  "station": "MangoMadness",
- "generated": "2026-08-08T23:00:11.162Z",
+ "generated": "2026-08-09T00:00:11.441Z",
  "batteryKwh": 13.5,
  "day": {
-  "date": "2026-08-08",
-  "gen": 28.78,
-  "genDay": 26.71,
+  "date": "2026-08-09",
+  "gen": 6.39,
+  "genDay": 6.4,
   "best": 28.78,
   "bestDate": "2026-08-08",
   "qName": "Q3 2026",
-  "exp": 15,
-  "imp": 1.57,
-  "selfUsed": 11.71,
-  "consumption": 13.28,
-  "selfSuff": 0.88,
-  "coverage": 0.93
+  "exp": 4.48,
+  "imp": 0.28,
+  "selfUsed": 1.92,
+  "consumption": 2.19,
+  "selfSuff": 0.87,
+  "coverage": 1
  },
  "month": {
   "label": "August 2026",
-  "gen": 207.78,
-  "conMeas": 113.95,
-  "conEst": 116.39,
-  "exp": 108.1,
-  "imp": 18.62,
+  "gen": 214.17,
+  "conMeas": 116.14,
+  "conEst": 118.54,
+  "exp": 112.58,
+  "imp": 18.9,
   "selfSuff": 0.84,
   "coverage": 0.98,
-  "genDays": 8,
-  "conDays": 8
+  "genDays": 9,
+  "conDays": 9
  },
  "year": {
   "label": "2026",
-  "gen": 5531.89,
-  "conMeas": 4003.22,
-  "conEst": 4153.71,
-  "exp": 2362.1,
-  "imp": 1034.04,
+  "gen": 5538.28,
+  "conMeas": 4005.41,
+  "conEst": 4155.79,
+  "exp": 2366.58,
+  "imp": 1034.32,
   "selfSuff": 0.74,
   "coverage": 0.96,
-  "genDays": 210,
-  "conDays": 210
+  "genDays": 211,
+  "conDays": 211
  }
 }
