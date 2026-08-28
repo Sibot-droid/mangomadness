@@ -16,6 +16,11 @@
  h1{margin:0;font-size:26px}
  h1 .sun{color:#d97706}
  .sub{color:var(--muted);font-size:13px;margin:4px 0 0}
+ .stamp{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;
+        font-size:12.5px;color:var(--muted);margin:5px 0 0}
+ .pip{width:9px;height:9px;border-radius:50%;background:#2e9e5b;flex:none}
+ .stamp.late .pip{background:#d97706} .stamp.late{color:#8a5a00}
+ .stamp.stale .pip{background:#c0392b} .stamp.stale{color:#a33}
  main{max-width:760px;margin:0 auto;padding:8px 12px 24px}
  .gauges{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:12px}
  .gauge{flex:1 1 150px;max-width:225px;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 8px 10px;text-align:center}
@@ -31,6 +36,7 @@
  .row b{font-variant-numeric:tabular-nums}
  .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px;vertical-align:middle}
  footer{color:var(--faint);font-size:11.5px;text-align:center;padding:8px 16px 20px;line-height:1.5}
+ #stale{display:none;background:#fff8e6;border:1px solid #f0dca8;color:#8a5a00;border-radius:10px;padding:10px 12px;font-size:13px;margin:12px 0}
  #err{display:none;background:#fff3f3;border:1px solid #f3c2c2;color:#a33;border-radius:10px;padding:10px 12px;font-size:13px;margin:12px 0}
  .gfill{transform-box:fill-box;transform-origin:50% 100%;animation:rise 1.2s cubic-bezier(.2,.7,.3,1) .1s both}
  .gfillB{animation-duration:4.55s;animation-delay:.5s}
@@ -47,8 +53,10 @@
 <header>
   <h1><span class="sun">☀</span> MangoMadness</h1>
   <p class="sub" id="updated">loading…</p>
+  <p class="stamp" id="stamp"><span class="pip"></span><span id="stampText"></span></p>
 </header>
 <main>
+  <div id="stale"></div>
   <div id="err">Couldn't load fresh stats — showing the last saved numbers (or try again when online).</div>
   <div class="gauges" id="gauges"></div>
   <h2>Totals (kWh)</h2>
@@ -56,7 +64,7 @@
 </main>
 <footer>
   Consumption, export &amp; import are <b>daytime-only</b> (the datalogger sleeps at night).<br>
-  Updated several times a day from the MangoMadness solar station · Production is the full-day total.
+  Collected hourly from the MangoMadness solar station · Production is the full-day total.
 </footer>
 <script>
 // Gauge builders — kept in sync with graph.js in the tracker (same geometry & colors).
@@ -129,40 +137,129 @@ function totalsCard(title, t) {
   <div class="row"><span>Daytime self-sufficiency</span><b>${ss}</b></div></div>`;
 }
 
+// --- freshness -------------------------------------------------------------------
+// Two different clocks matter here and they fail independently, so the page shows both:
+//   lastSample - the newest 5-minute frame the solar logger reported (stalls if the
+//                logger loses wifi, and stops every evening because it sleeps at night)
+//   generated  - when the collector last ran and republished this file (stalls if the
+//                mini PC is asleep, offline, or the git push is failing)
+// Staleness is judged on "generated", because that is the one that should tick hourly
+// round the clock. Thresholds come from the published interval, not from a magic number.
+const T = (iso) => new Date(iso).toLocaleTimeString('en-AU', { hour:'numeric', minute:'2-digit' });
+const D = (iso) => new Date(iso).toLocaleDateString('en-AU', { weekday:'short', day:'numeric', month:'short' });
+
+function ago(ms) {
+  const m = Math.round(ms / 60000);
+  if (m < 2) return 'just now';
+  if (m < 60) return m + ' min ago';
+  const h = Math.round(m / 60);
+  if (h < 24) return h + (h === 1 ? ' hour ago' : ' hours ago');
+  const d = Math.round(h / 24);
+  return d + (d === 1 ? ' day ago' : ' days ago');
+}
+
+function freshness(s) {
+  const iv = (s.intervalMinutes || 60) * 60000;
+  if (!s.generated) return { level: 'unknown', age: null };
+  const age = Date.now() - new Date(s.generated).getTime();
+  // 1.5 intervals = one run missed (or a slow one); 3 = something is actually wrong.
+  const level = age > iv * 3 ? 'stale' : age > iv * 1.5 ? 'late' : 'ok';
+  return { level, age };
+}
+
+function renderStamp(s) {
+  const f = freshness(s);
+  const d = s.day;
+  const bits = [];
+  if (d.lastSample) {
+    const sameDay = new Date(d.lastSample).toDateString() === new Date().toDateString();
+    bits.push('solar data to ' + (sameDay ? T(d.lastSample) : D(d.lastSample) + ' ' + T(d.lastSample)));
+  }
+  if (s.generated) bits.push('checked ' + T(s.generated) + ' (' + ago(f.age) + ')');
+  const stamp = document.getElementById('stamp');
+  stamp.className = 'stamp' + (f.level === 'ok' || f.level === 'unknown' ? '' : ' ' + f.level);
+  document.getElementById('stampText').textContent = bits.join(' · ') || 'no timestamp in this data';
+
+  const box = document.getElementById('stale');
+  if (f.level === 'stale') {
+    box.textContent = 'These numbers are stale — the tracker last checked in at ' + T(s.generated) +
+      ' (' + ago(f.age) + '). It normally updates every ' + (s.intervalMinutes || 60) + ' minutes.';
+    box.style.display = 'block';
+  } else {
+    box.style.display = 'none';
+  }
+}
+
 function render(s) {
   const d = s.day;
   const housePct = d.genDay > 0 ? d.selfUsed / d.genDay : 0;
-  const upd = new Date(s.generated).toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
-  document.getElementById('updated').textContent =
-    `Simon's solar station · latest day ${d.date} · updated ${upd}`;
+  // collectedFor is the COLLECTOR's local date, so "today" stays right even for a viewer in
+  // another timezone - and it is what tells us the day's figures are still filling up.
+  const isToday = s.collectedFor && d.date === s.collectedFor;
+  const dayLabel = isToday ? 'today so far' : D(d.date + 'T00:00:00');
+  document.getElementById('updated').textContent = "Simon's solar station · " + dayLabel;
+  renderStamp(s);
   document.getElementById('gauges').innerHTML =
     tile(sunGauge(d.gen, d.best), d.best > 0 ? Math.round(Math.min(d.gen/d.best,1)*100) : 0,
-      [`Day total: <b>${d.gen.toFixed(1)} kWh</b>`, `of ${d.qName} best ${d.best.toFixed(1)} kWh`]) +
+      [(isToday ? 'Today so far: ' : 'Day total: ') + '<b>' + d.gen.toFixed(1) + ' kWh</b>',
+       'of ' + d.qName + ' best ' + d.best.toFixed(1) + ' kWh']) +
     tile(houseGauge(housePct), Math.round(housePct*100),
-      [`Self-used solar: <b>${d.selfUsed.toFixed(1)} kWh</b>`, `of ${d.genDay.toFixed(1)} kWh daytime generation`]) +
+      ['Self-used solar: <b>' + d.selfUsed.toFixed(1) + ' kWh</b>',
+       'of ' + d.genDay.toFixed(1) + ' kWh daytime generation']) +
     tile(batteryGauge(d.exp, s.batteryKwh), Math.round(Math.min(d.exp/s.batteryKwh,1)*100),
-      [`Exported surplus: <b>${d.exp.toFixed(1)} kWh</b>`, `= a ${s.batteryKwh} kWh battery this full`]);
+      ['Exported surplus: <b>' + d.exp.toFixed(1) + ' kWh</b>',
+       '= a ' + s.batteryKwh + ' kWh battery this full']);
   document.getElementById('totals').innerHTML =
     totalsCard('This month — ' + s.month.label, s.month) +
     totalsCard('This year — ' + s.year.label, s.year);
 }
 
+let current = null;
+
+// Re-render fully only when the numbers actually changed: render() restarts the gauge
+// animations, which would be distracting on a phone left sitting on this page all day.
+function apply(s) {
+  if (current && current.generated === s.generated) { current = s; renderStamp(s); return; }
+  current = s;
+  render(s);
+}
+
 async function load() {
   try {
-    const res = await fetch('stats.json?t=' + Date.now());
+    const res = await fetch('stats.json?t=' + Date.now(), { cache: 'no-store' });
     if (!res.ok) throw new Error(res.status);
-    render(await res.json());
+    apply(await res.json());
+    document.getElementById('err').style.display = 'none';
   } catch (e) {
     // offline / fetch failed: try the service-worker cache explicitly
     try {
       const res = await caches.match('stats.json');
-      if (res) { render(await res.json()); document.getElementById('err').style.display = 'block'; return; }
+      if (res) { apply(await res.json()); document.getElementById('err').style.display = 'block'; return; }
     } catch {}
+    // Keep whatever is already on screen, but let the age line tell the truth about it.
+    if (current) { renderStamp(current); document.getElementById('err').style.display = 'block'; return; }
     document.getElementById('err').textContent = 'No stats available — check your connection and reload.';
     document.getElementById('err').style.display = 'block';
   }
 }
+
 load();
+
+// Keep "x min ago" honest without hammering the network: the relative time is recomputed
+// every 30s, stats.json is refetched at most every 5 minutes, and always when the app comes
+// back to the foreground - a phone can sit backgrounded for days with this page open.
+let lastFetch = Date.now();
+setInterval(() => {
+  if (document.hidden) return;
+  if (Date.now() - lastFetch > 5 * 60 * 1000) { lastFetch = Date.now(); load(); }
+  else if (current) renderStamp(current);
+}, 30000);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) return;
+  lastFetch = Date.now();
+  load();
+});
+
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
 </body>
