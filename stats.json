@@ -1,12 +1,12 @@
 {
  "station": "MangoMadness",
- "generated": "2026-09-12T06:00:14.803Z",
+ "generated": "2026-09-12T07:02:10.044Z",
  "collectedFor": "2026-09-12",
  "intervalMinutes": 60,
  "batteryKwh": 13.5,
  "day": {
   "date": "2026-09-12",
-  "gen": 30.49,
+  "gen": 31.5,
   "genDay": 30.61,
   "best": 32.96,
   "bestDate": "2026-09-02",
@@ -22,9 +22,9 @@
  },
  "month": {
   "label": "September 2026",
-  "gen": 354.13,
+  "gen": 355.14,
   "conMeas": 238.15,
-  "conEst": 240.1,
+  "conEst": 240.79,
   "exp": 148.88,
   "imp": 35.78,
   "selfSuff": 0.85,
@@ -34,9 +34,9 @@
  },
  "year": {
   "label": "2026",
-  "gen": 6480.6,
+  "gen": 6481.61,
   "conMeas": 4596.47,
-  "conEst": 4747.55,
+  "conEst": 4748.29,
   "exp": 2800.54,
   "imp": 1122.85,
   "selfSuff": 0.76,
