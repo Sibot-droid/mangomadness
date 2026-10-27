@@ -1,6 +1,6 @@
 {
  "station": "MangoMadness",
- "generated": "2026-10-27T18:00:19.696Z",
+ "generated": "2026-10-27T19:00:21.809Z",
  "collectedFor": "2026-10-28",
  "intervalMinutes": 60,
  "batteryKwh": 13.5,
@@ -29,7 +29,7 @@
   "imp": 148.35,
   "selfSuff": 0.73,
   "coverage": 1,
-  "genDays": 27,
+  "genDays": 28,
   "conDays": 27
  },
  "year": {
@@ -41,7 +41,7 @@
   "imp": 1315.19,
   "selfSuff": 0.76,
   "coverage": 0.97,
-  "genDays": 290,
+  "genDays": 291,
   "conDays": 290
  }
 }
