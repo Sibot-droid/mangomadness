@@ -1,7 +1,7 @@
 {
  "station": "MangoMadness",
- "generated": "2026-11-25T12:00:16.424Z",
- "collectedFor": "2026-11-25",
+ "generated": "2026-11-25T13:00:16.956Z",
+ "collectedFor": "2026-11-26",
  "intervalMinutes": 60,
  "batteryKwh": 13.5,
  "day": {
